@@ -18,7 +18,7 @@ func getWallPid() (int, error) {
 	}
 
 	for _, proc := range processList {
-		if proc.Executable() == "linux-wallpaperengine" {
+		if proc.Executable() == "linux-wallpaper" {
 			return proc.Pid(), nil
 		}
 	}
@@ -46,8 +46,8 @@ func setWall(wp string) error {
 		"eDP-1",
 		wp,
 	)
-  proc.Env = os.Environ()
-  fmt.Fprintf(os.Stderr, "info: Running command: %s\n", proc.String())
+	proc.Env = os.Environ()
+	fmt.Fprintf(os.Stderr, "info: Running command: %s\n", proc.String())
 	err = proc.Start()
 	if err != nil {
 		return err
@@ -66,7 +66,8 @@ func unsetWall() error {
 		return err
 	}
 	if pid < 0 {
-		return fmt.Errorf("Process linux-wallpaperengine not running")
+		fmt.Fprintf(os.Stderr, "Process linux-wallpaperengine not running")
+		return nil
 	}
 
 	proc, _ := os.FindProcess(pid)
@@ -86,7 +87,7 @@ func onWallUpdate(home string) {
 
 	steam_path := filepath.FromSlash(home)
 	steam_path = filepath.Join(".steam", "steam", "steamapps", "Workshop", "Content", "431960")
-  steam_path, _ = filepath.Abs(steam_path)
+	steam_path, _ = filepath.Abs(steam_path)
 
 	wall_file_maybe := filepath.Join(steam_path, wall_id)
 	stat, err := os.Stat(wall_file_maybe)
