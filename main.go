@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -32,7 +33,7 @@ func setWall(wp string) error {
 	if pid >= 0 {
 		unsetWall()
 	}
-	proc, err := os.StartProcess("hyprctl", []string{
+	proc := exec.Command("hyprctl",
 		"hyprctl",
 		"dispatch",
 		"--",
@@ -45,12 +46,9 @@ func setWall(wp string) error {
 		"--screen-root",
 		"eDP-1",
 		wp,
-	}, nil)
-	if err != nil {
-		return err
-	}
+	)
 
-	_, _ = proc.Wait()
+	_ = proc.Wait()
 	return nil
 }
 
