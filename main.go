@@ -11,28 +11,23 @@ import (
 	ps "github.com/mitchellh/go-ps"
 )
 
-func getWallPid() (int, error) {
+func getWallPids() ([]int, error) {
 	processList, err := ps.Processes()
 	if err != nil {
-		return 0, err
+		return []int{}, err
 	}
 
+	pids := make([]int, 0)
 	for _, proc := range processList {
 		if proc.Executable() == "linux-wallpaper" {
-			return proc.Pid(), nil
+			pids = append(pids, proc.Pid())
 		}
 	}
-	return -1, nil
+	return pids, nil
 }
 
 func setWall(wp string) error {
-	pid, err := getWallPid()
-	if err != nil {
-		return err
-	}
-	if pid >= 0 {
-		unsetWall()
-	}
+	unsetWall()
 	proc := exec.Command("hyprctl",
 		"dispatch",
 		"--",
@@ -48,7 +43,7 @@ func setWall(wp string) error {
 	)
 	proc.Env = os.Environ()
 	fmt.Fprintf(os.Stderr, "info: Running command: %s\n", proc.String())
-	err = proc.Start()
+	err := proc.Start()
 	if err != nil {
 		return err
 	}
@@ -61,17 +56,15 @@ func setWall(wp string) error {
 }
 
 func unsetWall() error {
-	pid, err := getWallPid()
+	pids, err := getWallPids()
 	if err != nil {
 		return err
 	}
-	if pid < 0 {
-		fmt.Fprintf(os.Stderr, "Process linux-wallpaperengine not running")
-		return nil
+	for _, pid := range pids {
+		proc, _ := os.FindProcess(pid)
+		proc.Kill()
 	}
-
-	proc, _ := os.FindProcess(pid)
-	return proc.Kill()
+	return nil
 }
 
 func onWallUpdate(home string) {
