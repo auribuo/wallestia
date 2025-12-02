@@ -25,8 +25,6 @@ func getWallPid() (int, error) {
 	return -1, nil
 }
 
-var wallProc *exec.Cmd = nil
-
 func setWall(wp string) error {
 	pid, err := getWallPid()
 	if err != nil {
@@ -35,7 +33,11 @@ func setWall(wp string) error {
 	if pid >= 0 {
 		unsetWall()
 	}
-	wallProc = exec.Command("linux-wallpaperengine",
+	proc := exec.Command("hyprctl",
+		"dispatch",
+		"--",
+		"exec",
+		"linux-wallpaperengine",
 		"--fps",
 		"30",
 		"--scaling",
@@ -44,22 +46,31 @@ func setWall(wp string) error {
 		"eDP-1",
 		wp,
 	)
-	wallProc.Env = os.Environ()
-	fmt.Fprintf(os.Stderr, "info: Running command: %s\n", wallProc.String())
-	err = wallProc.Start()
+  proc.Env = os.Environ()
+  fmt.Fprintf(os.Stderr, "info: Running command: %s\n", proc.String())
+	err = proc.Start()
 	if err != nil {
 		return err
 	}
 
+	_ = proc.Wait()
+	if proc.ProcessState.ExitCode() != 0 {
+		return fmt.Errorf("Process failed with exit code %d", proc.ProcessState.ExitCode())
+	}
 	return nil
 }
 
 func unsetWall() error {
-	if wallProc == nil {
+	pid, err := getWallPid()
+	if err != nil {
+		return err
+	}
+	if pid < 0 {
 		return fmt.Errorf("Process linux-wallpaperengine not running")
 	}
 
-	return wallProc.Process.Kill()
+	proc, _ := os.FindProcess(pid)
+	return proc.Kill()
 }
 
 func onWallUpdate(home string) {
@@ -75,6 +86,7 @@ func onWallUpdate(home string) {
 
 	steam_path := filepath.FromSlash(home)
 	steam_path = filepath.Join(".steam", "steam", "steamapps", "Workshop", "Content", "431960")
+  steam_path, _ = filepath.Abs(steam_path)
 
 	wall_file_maybe := filepath.Join(steam_path, wall_id)
 	stat, err := os.Stat(wall_file_maybe)
