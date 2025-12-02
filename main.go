@@ -47,6 +47,7 @@ func setWall(wp string) error {
 		"eDP-1",
 		wp,
 	)
+  fmt.Fprintf(os.Stderr, "info: Running command: %s\n", proc.String())
   proc.Stderr = os.Stderr
 	err = proc.Start()
 	if err != nil {
