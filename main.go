@@ -44,7 +44,7 @@ func setWall(wp string) error {
 		"fill",
 		"--screen-root",
 		"eDP-1",
-    wp,
+		wp,
 	}, nil)
 	if err != nil {
 		return err
@@ -79,7 +79,7 @@ func onWallUpdate(home string) {
 	wall_id := strings.Split(wall_filename, ".")[0]
 
 	steam_path := filepath.FromSlash(home)
-	steam_path = filepath.Join(".steam", "steam", "steamapps", "workshop", "content", "431960")
+	steam_path = filepath.Join(".steam", "steam", "steamapps", "Workshop", "Content", "431960")
 
 	wall_file_maybe := filepath.Join(steam_path, wall_id)
 	stat, err := os.Stat(wall_file_maybe)
