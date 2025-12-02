@@ -47,8 +47,16 @@ func setWall(wp string) error {
 		"eDP-1",
 		wp,
 	)
+  proc.Stderr = os.Stderr
+	err = proc.Start()
+	if err != nil {
+		return err
+	}
 
 	_ = proc.Wait()
+	if proc.ProcessState.ExitCode() != 0 {
+		return fmt.Errorf("Process failed")
+	}
 	return nil
 }
 
