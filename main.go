@@ -34,7 +34,6 @@ func setWall(wp string) error {
 		unsetWall()
 	}
 	proc := exec.Command("hyprctl",
-		"hyprctl",
 		"dispatch",
 		"--",
 		"exec",
