@@ -25,6 +25,8 @@ func getWallPid() (int, error) {
 	return -1, nil
 }
 
+var wallProc *exec.Cmd = nil
+
 func setWall(wp string) error {
 	pid, err := getWallPid()
 	if err != nil {
@@ -33,11 +35,7 @@ func setWall(wp string) error {
 	if pid >= 0 {
 		unsetWall()
 	}
-	proc := exec.Command("hyprctl",
-		"dispatch",
-		"--",
-		"exec",
-		"linux-wallpaperengine",
+	wallProc = exec.Command("linux-wallpaperengine",
 		"--fps",
 		"30",
 		"--scaling",
@@ -46,31 +44,22 @@ func setWall(wp string) error {
 		"eDP-1",
 		wp,
 	)
-  fmt.Fprintf(os.Stderr, "info: Running command: %s\n", proc.String())
-  proc.Stderr = os.Stderr
-	err = proc.Start()
+	wallProc.Env = os.Environ()
+	fmt.Fprintf(os.Stderr, "info: Running command: %s\n", wallProc.String())
+	err = wallProc.Start()
 	if err != nil {
 		return err
 	}
 
-	_ = proc.Wait()
-	if proc.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf("Process failed")
-	}
 	return nil
 }
 
 func unsetWall() error {
-	pid, err := getWallPid()
-	if err != nil {
-		return err
-	}
-	if pid < 0 {
+	if wallProc == nil {
 		return fmt.Errorf("Process linux-wallpaperengine not running")
 	}
 
-	proc, _ := os.FindProcess(pid)
-	return proc.Kill()
+	return wallProc.Process.Kill()
 }
 
 func onWallUpdate(home string) {
